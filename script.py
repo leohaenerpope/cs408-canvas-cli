@@ -8,6 +8,8 @@ load_dotenv()
 BASE_URL = "https://boisestatecanvas.instructure.com/api/v1"
 TOKEN = os.getenv("CANVAS_API_TOKEN")
 
+# Handle .env file using python library dotenv
+
 if not TOKEN:
     raise ValueError("Missing CANVAS_API_TOKEN: Check/create your .env file")
 
@@ -39,13 +41,20 @@ def get_canvas_courses():
     print("")
 
     # Adding per_page=100 to handle more results in one go
-    endpoint = f"{BASE_URL}/courses?per_page=100"
+    url = f"{BASE_URL}/courses?per_page=100&include[]=total_scores"
+    courses = []
     
     # Get Courses, 1st api call
     try:
-        response = requests.get(endpoint, headers=headers)
-        response.raise_for_status()
-        courses = response.json()
+        while url: # Handles pagination
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+
+            courses.extend(response.json())
+            if 'next' in response.links:
+                url = response.links['next']['url']
+            else:
+                url = None
         
         print(f"{'ID':<10} | {'Course Name':<60} | {'Grade':<8} | {'Score'}")
         print("-" * 100)
@@ -60,9 +69,10 @@ def get_canvas_courses():
             id = course.get('id')
             if specific_id != -1 and id != specific_id:
                 continue
-            else:
+            elif not found_specific_grade_switch:
                 found_specific_grade_switch = False
-
+            
+            # Now get enrollment information given course id from courses retrieval, 2nd api call
             try:
                 # Now get enrollment information given course id from courses retrieval, 2nd api call
                 response2 = requests.get(f"{BASE_URL}/courses/{id}/enrollments?per_page=200", headers=headers)
@@ -74,8 +84,11 @@ def get_canvas_courses():
                         grades = enrollment.get('grades', {})
                         current_grade = grades.get('current_grade', 'N/A')
                         current_score = grades.get('current_score', 'N/A')
-                        if current_grade != 'N/A': # only user (since they have token) can have the current_grade object
+                        if current_grade is None or current_score is None:
+                            continue
+                        if current_grade != 'N/A' and current_score != 'N/A': # only user (since they have token) can have the current_grade object
                             print(f"{id:<10} | {name[:50]:<60} | {current_grade:<8} | {current_score}%")
+                            break
             except requests.exceptions.RequestException as e:
                 # Catches potential error trying to retrieve enrollment grade.
                 continue
