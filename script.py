@@ -69,7 +69,7 @@ def get_canvas_courses():
             id = course.get('id')
             if specific_id != -1 and id != specific_id:
                 continue
-            elif not found_specific_grade_switch:
+            else:
                 found_specific_grade_switch = False
             
             # Now get enrollment information given course id from courses retrieval, 2nd api call
