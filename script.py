@@ -71,8 +71,7 @@ def get_canvas_courses():
 
                 if enrollments:
                     for enrollment in enrollments:
-                        data = enrollment
-                        grades = data.get('grades', {})
+                        grades = enrollment.get('grades', {})
                         current_grade = grades.get('current_grade', 'N/A')
                         current_score = grades.get('current_score', 'N/A')
                         if current_grade != 'N/A': # only user (since they have token) can have the current_grade object
