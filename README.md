@@ -10,7 +10,7 @@ This is a lab for my BSU CS408 class that utilizes Instructure Canvas's api toke
 In the project directory, create a '.env' file that contains a specification for your
 CANVAS_API_TOKEN, see '.env.example' for formatting.
 
-In a bash terminal, navigate to directory.
+In a bash terminal, navigate to directory. Make sure that python is installed on your computer.
 
 
 Set up the python environment:
